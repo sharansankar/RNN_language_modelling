@@ -1,8 +1,17 @@
+from __future__ import division
 from nltk.tokenize import WhitespaceTokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 class RNN:
-    def __init__(self):
+    def __init__(self, hidden_dim=100,bptt_truncate=4):
+        self.word_dim = 0
+        self.hidden_dim = hidden_dim
+        self.bptt_truncate = bptt_truncate
+
+        self.U = 0
+        self.W = 0
+        self.V = 0
+
         self.xtrain = 0
         self.ytrain = 0
         return
@@ -18,7 +27,12 @@ class RNN:
             segments[x].append('</s>')
         return segments
 
-
+    @staticmethod
+    def softmax(vals):
+        val_sum = np.sum(vals)
+        for y in range(len(vals)):
+                vals[y] = float(vals[y]/val_sum)
+        return vals
     @staticmethod
     def create_matrix(segments,dict):
 
@@ -28,6 +42,11 @@ class RNN:
         train_x = np.asarray([[dict.index(word) for word in segment[:-1]] for segment in filtered_segments])
         train_y = np.asarray([[dict.index(word) for word in segment[1:]] for segment in filtered_segments])
         return train_x, train_y
+
+    def random_init(self):
+        self.U = np.random.uniform(-np.sqrt(1./self.word_dim), np.sqrt(1./self.word_dim), (self.hidden_dim, self.word_dim))
+        self.V = np.random.uniform(-np.sqrt(1./self.hidden_dim), np.sqrt(1./self.hidden_dim), (self.word_dim, self.hidden_dim))
+        self.W = np.random.uniform(-np.sqrt(1./self.hidden_dim), np.sqrt(1./self.hidden_dim), (self.hidden_dim, self.hidden_dim))
 
     def preprocess(self, infile):
         input = open(infile,'r')
@@ -56,10 +75,39 @@ class RNN:
         self.xtrain = xtrain
         self.ytrain = ytrain
 
+        self.word_dim = len(dictionary)
         print token_segments[0]
         print xtrain[0]
+        return [xtrain, ytrain]
+
+    def forward_prop(self,x_in):
+        time_steps = len(x_in)
+
+        saved_states = np.zeros((time_steps+ 1, self.hidden_dim))
+        time_step_outputs = np.zeros((time_steps,self.word_dim))
+
+        for step in range(0,time_steps):
+            #print self.U[:, x_in[step]].shape
+            if step == 0:
+                saved_states[step] = np.tanh(self.U[:,x_in[step]])
+            else:
+                saved_states[step] = np.tanh(self.U[:,x_in[step]] + self.W.dot(saved_states[step-1]))
+
+            #print self.V.dot(saved_states[step]).shape
+            time_step_outputs[step] = self.softmax(self.V.dot(saved_states[step]))
+        return [time_step_outputs, saved_states]
+
+    def predict(self,x):
+        out, store = self.forward_prop(x)
+        return np.argmax(out,axis=1)
+
 
 
 if __name__ == '__main__':
     x = RNN()
-    x.preprocess('corpora/shakespeare_sonnets.txt')
+    input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
+    x.random_init()
+    x.forward_prop(input[0])
+    # r = np.random.randn(3,3)
+    # print r
+    # print x.softmax(r)
