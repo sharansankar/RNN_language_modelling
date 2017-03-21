@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 class RNN:
     def __init__(self, hidden_dim=100,bptt_truncate=4):
-        self.word_dim = 0
+        self.word_dim = 0 #vocabulary size
         self.hidden_dim = hidden_dim
         self.bptt_truncate = bptt_truncate
 
@@ -102,12 +102,25 @@ class RNN:
         return np.argmax(out,axis=1)
 
 
+    def cross_entropy_loss(self,x,y_real):
+        loss = 0
+        N = sum([len(y_real[a]) for a in range(len(y_real))])
+        for index in range(len(y_real)):
+            y_predict, saved = self.forward_prop(x[index])
+            predict = y_predict[[val for val in range(len(y_real[index]))], y_real[index]] #gives the probability predicted for each word that was the actual outcome
+            #in this case each real outcome yt has val -1
+
+            loss += -1 * np.nansum(np.log(predict))
+        loss = loss/N
+        return loss
 
 if __name__ == '__main__':
     x = RNN()
     input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
     x.random_init()
-    x.forward_prop(input[0])
+    #x.forward_prop(input[0])
     # r = np.random.randn(3,3)
     # print r
     # print x.softmax(r)
+
+    print x.cross_entropy_loss(input[:1000],input_y[:1000])
