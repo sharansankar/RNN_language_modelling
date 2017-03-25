@@ -140,7 +140,7 @@ class RNN:
                 delta_t = self.V.T.dot(delta_y[step_back]) * (1 - (saved_states[bptt_step-1] ** 2))
         return [dl_dU, dl_dV, dl_dW]
 
-    def gradient_check(self,x,y,h=0.001, error_threshold=0.01):
+    def gradient_check(self,x,y,h=0.0000001, error_threshold=0.01):
         backprop_gradients = self.backprop_tt(x,y)
 
         parameters = ['U', 'V', 'W']
@@ -178,7 +178,7 @@ class RNN:
             print "Gradient check for parameter %s passed." % (parameter)
         return
 if __name__ == '__main__':
-    #np.random.seed(10)
+    np.random.seed(10)
     x = RNN(hidden_dim=10, bptt_truncate=1000)
     #input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
     x.word_dim = 100
