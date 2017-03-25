@@ -3,6 +3,7 @@ from nltk.tokenize import WhitespaceTokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import operator
+import time
 
 class RNN:
     def __init__(self, hidden_dim=100,bptt_truncate=4):
@@ -108,7 +109,7 @@ class RNN:
             y_predict, saved = self.forward_prop(x[index])
             predict = y_predict[[val for val in range(len(y_real[index]))], y_real[index]] #gives the probability predicted for each word that was the actual outcome
             #in this case each real outcome yt has val -1
-            print predict
+            #print predict
             loss += -1 * np.nansum(np.log(predict))
         loss = loss/N
         return loss
@@ -127,10 +128,10 @@ class RNN:
         delta_y[np.arange(N),y_real] -= 1 #since y_real = 1
 
         for step_back in np.arange(N)[::-1]:
-            print delta_y.shape
-            buffer = np.transpose(saved_states[step_back])
-            print buffer.shape
-            print dl_dV.shape
+            # print delta_y.shape
+            # buffer = np.transpose(saved_states[step_back])
+            # print buffer.shape
+            # print dl_dV.shape
             dl_dV += np.outer(delta_y[step_back],saved_states[step_back].transpose())
 
             delta_t = self.V.T.dot(delta_y[step_back]) * (1 - (saved_states[step_back] ** 2))
@@ -177,11 +178,29 @@ class RNN:
                 it.iternext()
             print "Gradient check for parameter %s passed." % (parameter)
         return
+
+    def stochastic_gradient_descent(self,x_in,y_real, learning_rate=0.001):
+        dl_dU, dl_dV, dl_dW = self.backprop_tt(x_in,y_real)
+
+        self.U -= learning_rate*dl_dU
+        self.V -= learning_rate*dl_dV
+        self.W -= learning_rate*dl_dW
+        return
+
+    def train(self,x_in, y_real):
+        loss_vals = []
+        for index in range(len(y_real)):
+            if index % 5 == 0:
+                current_loss = self.cross_entropy_loss(x_in,y_real)
+                loss_vals.append(current_loss)
+                print "iteration number: " + str(index) + ', loss: '+ str(current_loss)
+            self.stochastic_gradient_descent(x_in[index],y_real[index], 0.001)
+
 if __name__ == '__main__':
     np.random.seed(10)
-    x = RNN(hidden_dim=10, bptt_truncate=1000)
-    #input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
-    x.word_dim = 100
+    x = RNN()
+    input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
+    #x.word_dim = 100
     x.random_init()
     #x.forward_prop(input[:3])
     # r = np.random.randn(3,3)
@@ -189,8 +208,14 @@ if __name__ == '__main__':
     # print x.softmax(r)
 
     #print x.cross_entropy_loss(input[:10],input_y[:1000])
-    x.gradient_check([0,1,2,3], [1,2,3,4])
+    #x.gradient_check([0,1,2,3], [1,2,3,4])
 
 
     # print "Actual loss: %f" % x.cross_entropy_loss(input[:10], input_y[:10])
     # print "Expected Loss for random predictions: %f" % np.log(x.word_dim)
+    start_time = time.time()
+    x.train(input[:100], input_y[:100])
+    end_time = time.time()
+
+    print "------------execution time: " + str(end_time - start_time) + "-------------------"
+    print len(input_y)
