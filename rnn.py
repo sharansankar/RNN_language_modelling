@@ -209,7 +209,7 @@ class RNN:
         print "generating text.........."
 
         line_end_index = self.dictionary.index('</s>')
-        unknown_index = self.dictionary.index('<unknown/>')
+        #unknown_index = self.dictionary.index('<unknown/>')
         generated_lines = []
 
         for x in range(15):
