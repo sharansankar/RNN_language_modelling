@@ -210,7 +210,7 @@ class RNN:
         unknown_index = self.dictionary.index('<unknown/>')
         generated_lines = []
 
-        for x in range(2):
+        for x in range(15):
             line = []
             line.append(self.dictionary.index('<s>'))
 
