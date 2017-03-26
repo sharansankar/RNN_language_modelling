@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
     start_time = time.time()
     recurrent_nn = RNN()
-    input, input_y = recurrent_nn.preprocess('corpora/shakespeare_sonnets.txt')
+    input, input_y = recurrent_nn.preprocess('corpora/shakespeare_plays.txt')
     recurrent_nn.random_init()
 
     #print x.generate_text()
