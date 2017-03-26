@@ -38,6 +38,7 @@ class RNN:
         return vals_soft/np.sum(vals_soft)
     @staticmethod
     def create_matrix(segments,dict):
+	print "creating matrix" 
 
         #filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
         punctuation = string.punctuation
@@ -59,6 +60,7 @@ class RNN:
         self.W = np.random.uniform(-np.sqrt(1./self.hidden_dim), np.sqrt(1./self.hidden_dim), (self.hidden_dim, self.hidden_dim))
 
     def preprocess(self, infile):
+	print "preprocessing"
         input = open(infile,'r')
         segments = []
         token_segments = []
@@ -82,8 +84,8 @@ class RNN:
 
         xtrain, ytrain = self.create_matrix(token_segments,self.dictionary)
 
-        self.xtrain = xtrain
-        self.ytrain = ytrain
+        #self.xtrain = xtrain
+        #self.ytrain = ytrain
 
 
         self.word_dim = len(self.dictionary)
