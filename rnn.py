@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
 
 
-    recurrent_nn.train(input, input_y)
+    recurrent_nn.train(input[:10], input_y[:10])
 
 
     generated_segments = recurrent_nn.generate_text()
