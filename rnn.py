@@ -17,6 +17,7 @@ class RNN:
 
         self.xtrain = 0
         self.ytrain = 0
+        self.dictionary = 0
         return
 
     @staticmethod
@@ -69,15 +70,15 @@ class RNN:
         #get mapping of each word
         vectorizer = TfidfVectorizer(min_df=2,tokenizer=lambda x:WhitespaceTokenizer().tokenize(x))
         vectorizer.fit_transform(segments)
-        dictionary = vectorizer.get_feature_names()
+        self.dictionary = vectorizer.get_feature_names()
 
-        xtrain, ytrain = self.create_matrix(token_segments,dictionary)
+        xtrain, ytrain = self.create_matrix(token_segments,self.dictionary)
 
         self.xtrain = xtrain
         self.ytrain = ytrain
 
 
-        self.word_dim = len(dictionary)
+        self.word_dim = len(self.dictionary)
         # print token_segments[0]
         # print xtrain[0]
         return [xtrain, ytrain]
@@ -88,9 +89,9 @@ class RNN:
         saved_states = np.zeros((time_steps+ 1, self.hidden_dim))
         time_step_outputs = np.zeros((time_steps,self.word_dim))
 
-        for step in range(0,time_steps):
+        for step in range(time_steps):
             #print self.U[:, x_in[step]].shape
-
+            #print step
             saved_states[step] = np.tanh(self.U[:,x_in[step]] + self.W.dot(saved_states[step-1]))
 
             #print self.V.dot(saved_states[step]).shape
@@ -196,26 +197,70 @@ class RNN:
                 print "iteration number: " + str(index) + ', loss: '+ str(current_loss)
             self.stochastic_gradient_descent(x_in[index],y_real[index], 0.001)
 
+    def generate_text(self):
+        print "generating text.........."
+
+        line_end_index = self.dictionary.index('</s>')
+        unknown_index = self.dictionary.index('<unknown/>')
+        generated_lines = []
+
+        for x in range(14):
+            line = []
+            line.append(self.dictionary.index('<s>'))
+
+            while line[-1] != line_end_index:
+                next_word_probabilities = self.forward_prop(line)
+                next_word_probabilities = next_word_probabilities[0]
+                next_word_probabilities = next_word_probabilities[-1]
+                sorted_probs = np.argsort(next_word_probabilities)
+
+                #word_index = np.where(next_word_probabilities == np.max(next_word_probabilities))
+                #word_index = word_index[0][0]
+                if len(line) == 1 and x > 0 :
+                    word_index = sorted_probs[-x - 1 ]
+                else:
+                    word_index = sorted_probs[-1]
+
+                line.append(word_index)
+                #line.append(self.dictionary[next_word_probabilities.index(np.max(next_word_probabilities))])
+            generated_lines.append(line)
+        return self.decode_text(generated_lines)
+
+    def decode_text(self,x_in):
+        print "decoding text..........."
+
+        for index in range(len(x_in)):
+            x_in[index] = [self.dictionary[x] for x in x_in[index]]
+        return x_in
+
 if __name__ == '__main__':
     np.random.seed(10)
-    x = RNN()
-    input, input_y = x.preprocess('corpora/shakespeare_sonnets.txt')
-    #x.word_dim = 100
-    x.random_init()
-    #x.forward_prop(input[:3])
-    # r = np.random.randn(3,3)
-    # print r
-    # print x.softmax(r)
 
-    #print x.cross_entropy_loss(input[:10],input_y[:1000])
-    #x.gradient_check([0,1,2,3], [1,2,3,4])
-
-
-    # print "Actual loss: %f" % x.cross_entropy_loss(input[:10], input_y[:10])
-    # print "Expected Loss for random predictions: %f" % np.log(x.word_dim)
     start_time = time.time()
-    x.train(input[:100], input_y[:100])
+    recurrent_nn = RNN()
+    input, input_y = recurrent_nn.preprocess('corpora/shakespeare_sonnets.txt')
+    recurrent_nn.random_init()
+
+    #print x.generate_text()
+
+
+
+
+    recurrent_nn.train(input, input_y)
+
+
+    generated_segments = recurrent_nn.generate_text()
+
+    unwanted = ['<s>', '</s>']
+    outfile = open('generated_text/gen_sonnet.txt','w')
+    for segment in generated_segments:
+        filterd = filter(lambda x: x not in unwanted, segment )
+        filterd = ' '.join(filterd)
+        outfile.write(filterd)
+
+
     end_time = time.time()
 
-    print "------------execution time: " + str(end_time - start_time) + "-------------------"
-    print len(input_y)
+    print "------------execution time: " + str(end_time - start_time) + "------------"
+
+    outfile.close()
