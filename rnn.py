@@ -4,6 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import operator
 import time
+import string
 
 class RNN:
     def __init__(self, hidden_dim=100,bptt_truncate=4):
@@ -24,7 +25,7 @@ class RNN:
     def tokenize_and_append(segments):
         for x in range(len(segments)):
             segments[x] = WhitespaceTokenizer().tokenize(segments[x])
-            segments[x].append('\n') #only for shakespeare 
+            segments[x].append('\n') #only for shakespeare
 
             #append start and end symbols to each sentence
             segments[x] = ['<s>'] + segments[x]
@@ -38,14 +39,15 @@ class RNN:
     @staticmethod
     def create_matrix(segments,dict):
 
-        filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
+        #filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
+        punctuation = string.punctuation
+        filtered_segments = []
+        for segment in segments:
+            segment = filter(lambda x: x not in punctuation, segment)
+            segment = filter(lambda x: x in dict, segment) #filter out unknown words
+            filtered_segments.append(segment)
 
-        # filtered_segments = []
-        # for segment in segments:
-        #     segment = filter(lambda x: x in dict, segment)
-        #     filtered_segments.append(segment)
-
-        dict.append('<unknown/>')
+        #dict.append('<unknown/>')
 
         train_x = np.asarray([[dict.index(word) for word in segment[:-1]] for segment in filtered_segments])
         train_y = np.asarray([[dict.index(word) for word in segment[1:]] for segment in filtered_segments])
