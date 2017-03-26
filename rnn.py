@@ -24,7 +24,7 @@ class RNN:
     def tokenize_and_append(segments):
         for x in range(len(segments)):
             segments[x] = WhitespaceTokenizer().tokenize(segments[x])
-            segments[x].append('\n') #only for shakespeare sonets
+            segments[x].append('\n') #only for shakespeare 
 
             #append start and end symbols to each sentence
             segments[x] = ['<s>'] + segments[x]
@@ -39,6 +39,12 @@ class RNN:
     def create_matrix(segments,dict):
 
         filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
+
+        # filtered_segments = []
+        # for segment in segments:
+        #     segment = filter(lambda x: x in dict, segment)
+        #     filtered_segments.append(segment)
+
         dict.append('<unknown/>')
 
         train_x = np.asarray([[dict.index(word) for word in segment[:-1]] for segment in filtered_segments])
@@ -204,7 +210,7 @@ class RNN:
         unknown_index = self.dictionary.index('<unknown/>')
         generated_lines = []
 
-        for x in range(14):
+        for x in range(2):
             line = []
             line.append(self.dictionary.index('<s>'))
 
@@ -246,11 +252,11 @@ if __name__ == '__main__':
 
 
 
-    recurrent_nn.train(input, input_y)
+    recurrent_nn.train(input[:100], input_y[:100])
 
 
     generated_segments = recurrent_nn.generate_text()
-
+    print generated_segments
     unwanted = ['<s>', '</s>']
     outfile = open('generated_text/gen_sonnet.txt','w')
     for segment in generated_segments:
