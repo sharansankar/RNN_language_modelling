@@ -23,7 +23,7 @@ class RNN:
 
     @staticmethod
     def tokenize_and_append(segments):
-        for x in range(len(segments)):
+        for x in np.arrange(len(segments)):
             segments[x] = WhitespaceTokenizer().tokenize(segments[x])
             segments[x].append('\n') #only for shakespeare
 
@@ -38,7 +38,7 @@ class RNN:
         return vals_soft/np.sum(vals_soft)
     @staticmethod
     def create_matrix(segments,dict):
-	print "creating matrix" 
+	print "creating matrix"
 
         #filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
         punctuation = string.punctuation
@@ -74,11 +74,11 @@ class RNN:
         token_segments = self.tokenize_and_append(token_segments)
         segments = self.tokenize_and_append(segments)
 
-        for x in range(len(segments)):
+        for x in np.arrange(len(segments)):
             segments[x] = ' '.join(segments[x])
 
         #get mapping of each word
-        vectorizer = TfidfVectorizer(min_df=2,tokenizer=lambda x:WhitespaceTokenizer().tokenize(x))
+        vectorizer = TfidfVectorizer(min_df=5,tokenizer=lambda x:WhitespaceTokenizer().tokenize(x))
         vectorizer.fit_transform(segments)
         self.dictionary = vectorizer.get_feature_names()
 
@@ -99,7 +99,7 @@ class RNN:
         saved_states = np.zeros((time_steps+ 1, self.hidden_dim))
         time_step_outputs = np.zeros((time_steps,self.word_dim))
 
-        for step in range(time_steps):
+        for step in np.arrange(time_steps):
             #print self.U[:, x_in[step]].shape
             #print step
             saved_states[step] = np.tanh(self.U[:,x_in[step]] + self.W.dot(saved_states[step-1]))
@@ -115,10 +115,10 @@ class RNN:
 
     def cross_entropy_loss(self,x,y_real):
         loss = 0
-        N = sum([len(y_real[a]) for a in range(len(y_real))])
-        for index in range(len(y_real)):
+        N = sum([len(y_real[a]) for a in np.arrange(len(y_real))])
+        for index in np.arrange(len(y_real)):
             y_predict, saved = self.forward_prop(x[index])
-            predict = y_predict[[val for val in range(len(y_real[index]))], y_real[index]] #gives the probability predicted for each word that was the actual outcome
+            predict = y_predict[[val for val in np.arrange(len(y_real[index]))], y_real[index]] #gives the probability predicted for each word that was the actual outcome
             #in this case each real outcome yt has val -1
             #print predict
             loss += -1 * np.nansum(np.log(predict))
@@ -200,7 +200,7 @@ class RNN:
 
     def train(self,x_in, y_real):
         loss_vals = []
-        for index in range(len(y_real)):
+        for index in np.arrange(len(y_real)):
             if index % 5 == 0:
                 current_loss = self.cross_entropy_loss(x_in,y_real)
                 loss_vals.append(current_loss)
@@ -214,7 +214,7 @@ class RNN:
         #unknown_index = self.dictionary.index('<unknown/>')
         generated_lines = []
 
-        for x in range(15):
+        for x in np.arrange(15):
             line = []
             line.append(self.dictionary.index('<s>'))
 
@@ -239,7 +239,7 @@ class RNN:
     def decode_text(self,x_in):
         print "decoding text..........."
 
-        for index in range(len(x_in)):
+        for index in np.arrange(len(x_in)):
             x_in[index] = [self.dictionary[x] for x in x_in[index]]
         return x_in
 
