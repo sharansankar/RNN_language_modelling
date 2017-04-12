@@ -19,8 +19,8 @@ P(W1,W2,W3,W4,W5)=P(W1)P(W2|W1)P(W3|W2,W1)P(W4|W3,W2,W1)P(W5|W4,W3,W2,W1)
 </p>
 
 This can be generalized to the equation: 
-<p align="center">
+
 ![Generalized Equation](docs/equation.png)
-</p>
+
 
 However while this method works for relatively small sentences, it can be computationally expensive when performing modelling on large texts. To work around this, previous models such as N-gram proababilistic models only performed 
