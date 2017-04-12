@@ -36,9 +36,10 @@ class RNN:
     def softmax(vals):
         vals_soft = np.exp(vals - np.max(vals))
         return vals_soft/np.sum(vals_soft)
+
     @staticmethod
     def create_matrix(segments,dict):
-	print "creating matrix"
+        print "creating matrix"
 
         #filtered_segments = [[word if word in dict else '<unknown/>' for word in segment] for segment in segments]
         punctuation = string.punctuation
@@ -60,13 +61,13 @@ class RNN:
         self.W = np.random.uniform(-np.sqrt(1./self.hidden_dim), np.sqrt(1./self.hidden_dim), (self.hidden_dim, self.hidden_dim))
 
     def preprocess(self, infile):
-	print "preprocessing"
+        print "preprocessing"
         input = open(infile,'r')
         segments = []
         token_segments = []
 
         for line in input:
-            if len(line) > 1:
+            if len(line.split()) > 4:
                 segments.append(line)
                 token_segments.append(line)
 
@@ -78,7 +79,7 @@ class RNN:
             segments[x] = ' '.join(segments[x])
 
         #get mapping of each word
-        vectorizer = TfidfVectorizer(min_df=5,tokenizer=lambda x:WhitespaceTokenizer().tokenize(x))
+        vectorizer = TfidfVectorizer(min_df=1,tokenizer=lambda x:WhitespaceTokenizer().tokenize(x))
         vectorizer.fit_transform(segments)
         self.dictionary = vectorizer.get_feature_names()
 
@@ -201,7 +202,7 @@ class RNN:
     def train(self,x_in, y_real):
         loss_vals = []
         for index in np.arange(len(y_real)):
-            if index % 5 == 0:
+            if index % 10 == 0:
                 current_loss = self.cross_entropy_loss(x_in,y_real)
                 loss_vals.append(current_loss)
                 print "iteration number: " + str(index) + ', loss: '+ str(current_loss)
@@ -218,7 +219,7 @@ class RNN:
             line = []
             line.append(self.dictionary.index('<s>'))
 
-            while line[-1] != line_end_index:
+            while (line[-1] != line_end_index):
                 next_word_probabilities = self.forward_prop(line)
                 next_word_probabilities = next_word_probabilities[0]
                 next_word_probabilities = next_word_probabilities[-1]
@@ -226,12 +227,14 @@ class RNN:
 
                 #word_index = np.where(next_word_probabilities == np.max(next_word_probabilities))
                 #word_index = word_index[0][0]
+                counter = -1
                 if len(line) == 1 and x > 0 :
-                    word_index = sorted_probs[-x - 1 ]
+                    line.append(sorted_probs[-1-x])
                 else:
-                    word_index = sorted_probs[-1]
+                    while sorted_probs[counter] in line or ((sorted_probs[counter] == line_end_index) and (len(line) < 5)):
+                        counter -= 1
 
-                line.append(word_index)
+                    line.append(sorted_probs[counter])
                 #line.append(self.dictionary[next_word_probabilities.index(np.max(next_word_probabilities))])
             generated_lines.append(line)
         return self.decode_text(generated_lines)
@@ -248,25 +251,27 @@ if __name__ == '__main__':
 
     start_time = time.time()
     recurrent_nn = RNN()
-    input, input_y = recurrent_nn.preprocess('corpora/shakespeare_plays.txt')
+    input, input_y = recurrent_nn.preprocess('corpora/edgar_allan_poe.txt')
     recurrent_nn.random_init()
 
     #print x.generate_text()
+    # for x in range(2,5):
+    #     input
 
 
 
-
-    recurrent_nn.train(input, input_y)
+    recurrent_nn.train(input[:], input_y[:])
 
 
     generated_segments = recurrent_nn.generate_text()
     print generated_segments
     unwanted = ['<s>', '</s>']
-    outfile = open('generated_text/gen_sonnet.txt','w')
+    outfile = open('generated_text/edgar_allan_poem.txt','w')
     for segment in generated_segments:
         filterd = filter(lambda x: x not in unwanted, segment )
         filterd = ' '.join(filterd)
         outfile.write(filterd)
+        outfile.write( '\n')
 
 
     end_time = time.time()
