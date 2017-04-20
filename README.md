@@ -38,5 +38,17 @@ In this case:
 - Ot: output of RNN at time t
 - U,W,V: weights of the input, saved states and output respectively 
 
-RNN are better language models, for they are able to look further back than the previous N-gram models. 
+RNN are better language models, for they are able to look further back than the previous N-gram models. In this Recurrent Neural Network, I have created a neural network with a single hidden layer and a feedback connection from the output of the hidden layer back into itself. 
+
+## Project Implementation
+### Preprocessing 
+For language modelling, I have chosen two initial sets of text which will be used as training text. One contains all every single sonnet created by shakespeare, while the other is a set of every poem created by Edgar Allan Poe. Both are favourite authors of mine. 
+
+In the preprocessing phase, each line of text is turned into a vector where each word is represented as an index value of a large dictionary.In the process, any punctuation or numbers are stripped from the sentences. 
+
+### Training
+Training of the neural network can be broken down into three parts: 
+1. Forward propagation
+2. Backpropagation-through-time 
+3. 
 
