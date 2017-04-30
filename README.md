@@ -30,6 +30,7 @@ Recurrent neural networks work much like feedforward neural networks, however RN
 
 A really good visualization of an RNN is the image below: 
 ![RNN Architecture](docs/rnn_structure.jpg) 
+
 (source: http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/) 
 
 In this case:
@@ -50,5 +51,18 @@ In the preprocessing phase, each line of text is turned into a vector where each
 Training of the neural network can be broken down into three parts: 
 1. Forward propagation
 2. Backpropagation-through-time 
-3. 
+3. Stochastic Gradient Descent
+
+#### Forward Propagation 
+Forward propagation for a given input vector has the following structure: 
+1. Initialize hidden states S to 0: this represents the memory of the cell. Given that we are at the start of our input vector (time =0), there has been no previous input and thus our memory is none (set to 0). 
+2. At each time step: 
+  a. we update our hidden memory using the equation: s[t] = tanh(U*x[t] + W*s[t-1]) 
+  b. we output our probability gradient of the next word using equation: O(t) = softmax(V*s[t]) 
+
+The * represents the dot product between our hidden and input vector and its corresponding weight.
+
+#### Backpropagation-Through-Time
+
+
 
