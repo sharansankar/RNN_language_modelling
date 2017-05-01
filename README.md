@@ -63,6 +63,11 @@ Forward propagation for a given input vector has the following structure:
 The * represents the dot product between our hidden and input vector and its corresponding weight.
 
 #### Backpropagation-Through-Time
+To determine the loss of our neural network, we calculate the loss of the RNN output at each time step. To do this we calculate the cross entropy loss of the neural net output at time t and the corresponding expected output at the same timestep: 
+![cross entropy](docs/cross_entropy.png)
+
+#### Stochastic Gradient Descent 
+
 
 
 
